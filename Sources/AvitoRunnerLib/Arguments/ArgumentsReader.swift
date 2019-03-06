@@ -105,7 +105,18 @@ final class ArgumentsReader {
         guard let value = value else { throw ArgumentsError.argumentIsMissing(key) }
         return value
     }
-    
+
+    public static func runnerBinaryLocation(_ fbxctestValue: String?, fbxctestKey: ArgumentDescription) throws -> RunnerBinaryLocation {
+        guard let fbxctestValue = fbxctestValue else {
+            return .xcodebuild
+        }
+        return .fbxctest(
+            FbxctestLocation(
+                try ArgumentsReader.validateResourceLocation(fbxctestValue, key: fbxctestKey)
+            )
+        )
+    }
+
     public static func validateResourceLocation(_ value: String?, key: ArgumentDescription) throws -> ResourceLocation {
         let string = try validateNotNil(value, key: key)
         return try ResourceLocation.from(string)

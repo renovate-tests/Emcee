@@ -173,7 +173,7 @@ public final class Scheduler {
             eventBus: eventBus,
             configuration: RunnerConfiguration(
                 testType: configuration.testType,
-                fbxctest: bucket.toolResources.fbxctest,
+                runnerBinaryLocation: bucket.toolResources.runnerBinaryLocation,
                 buildArtifacts: bucket.buildArtifacts,
                 environment: bucket.testExecutionBehavior.environment,
                 simulatorSettings: bucket.simulatorSettings,

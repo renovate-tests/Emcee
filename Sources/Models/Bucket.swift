@@ -50,7 +50,7 @@ public final class Bucket: Codable, Hashable, CustomStringConvertible, CustomDeb
             + buildArtifacts.appBundle.description + buildArtifacts.runner.description + buildArtifacts.xcTestBundle.description
             + buildArtifacts.additionalApplicationBundles.map { $0.description }.sorted().joined()
             + testExecutionBehavior.environment.map { "\($0)=\($1)" }.sorted().joined() + "\(testExecutionBehavior.numberOfRetries)"
-            + toolResources.fbsimctl.description + toolResources.fbxctest.description
+            + toolResources.fbsimctl.description + toolResources.runnerBinaryLocation.description
             + simulatorSettings.description
         do {
             return try tests.avito_sha256Hash(encoding: .utf8)

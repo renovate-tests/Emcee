@@ -87,8 +87,11 @@ final class PluginManagerTests: XCTestCase {
             testEntries: [TestEntryFixtures.testEntry()],
             testContext: TestContext(
                 environment: ["AVITO_TEST_PLUGIN_OUTPUT": outputPath.path.asString],
-                simulatorInfo: SimulatorInfo(simulatorUuid: nil, simulatorSetPath: outputPath.path.asString),
-                testDestination: TestDestinationFixtures.testDestination
+                simulatorInfo: SimulatorInfo(
+                    simulatorUuid: nil,
+                    simulatorSetPath: outputPath.path.asString,
+                    testDestination: TestDestinationFixtures.testDestination
+                )
             )
         )
         

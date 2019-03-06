@@ -86,10 +86,9 @@ final class RunTestsOnRemoteQueueCommand: Command {
         let eventBus = EventBus()
         defer { eventBus.tearDown() }
         
-        let fbxctest = FbxctestLocation(try ArgumentsReader.validateResourceLocation(arguments.get(self.fbxctest), key: KnownStringArguments.fbxctest))
         let priority = try Priority(intValue: try ArgumentsReader.validateNotNil(arguments.get(self.priority), key: KnownUIntArguments.priority))
         let pluginLocations = try ArgumentsReader.validateResourceLocations(arguments.get(self.plugins) ?? [], key: KnownStringArguments.plugin).map({ PluginLocation($0) })
-        
+
         let queueServerDestination = try ArgumentsReader.deploymentDestinations(
             arguments.get(self.queueServerDestination),
             key: KnownStringArguments.queueServerDestination
@@ -101,6 +100,7 @@ final class RunTestsOnRemoteQueueCommand: Command {
             )
         )
         let runId = JobId(value: try ArgumentsReader.validateNotNil(arguments.get(self.runId), key: KnownStringArguments.runId))
+        let runnerBinaryLocation = try ArgumentsReader.runnerBinaryLocation(arguments.get(self.fbxctest), fbxctestKey: KnownStringArguments.fbxctest)
         let tempFolder = try TempFolder()
         let testArgFile = try ArgumentsReader.testArgFile(arguments.get(self.testArgFile), key: KnownStringArguments.testArgFile)
         let testDestinationConfigurations = try ArgumentsReader.testDestinations(arguments.get(self.testDestinations), key: KnownStringArguments.testDestinations)
@@ -118,10 +118,10 @@ final class RunTestsOnRemoteQueueCommand: Command {
         let jobResults = try runTestsOnRemotelyRunningQueue(
             buildArtifacts: buildArtifacts,
             eventBus: eventBus,
-            fbxctest: fbxctest,
             priority: priority,
             queueServerAddress: runningQueueServerAddress,
             runId: runId,
+            runnerBinaryLocation: runnerBinaryLocation,
             tempFolder: tempFolder,
             testArgFile: testArgFile,
             testDestinationConfigurations: testDestinationConfigurations
@@ -199,10 +199,10 @@ final class RunTestsOnRemoteQueueCommand: Command {
     private func runTestsOnRemotelyRunningQueue(
         buildArtifacts: BuildArtifacts,
         eventBus: EventBus,
-        fbxctest: FbxctestLocation,
         priority: Priority,
         queueServerAddress: SocketAddress,
         runId: JobId,
+        runnerBinaryLocation: RunnerBinaryLocation,
         tempFolder: TempFolder,
         testArgFile: TestArgFile,
         testDestinationConfigurations: [TestDestinationConfiguration])
@@ -211,7 +211,7 @@ final class RunTestsOnRemoteQueueCommand: Command {
         let testEntriesValidator = TestEntriesValidator(
             eventBus: eventBus,
             runtimeDumpConfiguration: RuntimeDumpConfiguration(
-                fbxctest: fbxctest,
+                runnerBinaryLocation: runnerBinaryLocation,
                 xcTestBundle: buildArtifacts.xcTestBundle,
                 testDestination: testDestinationConfigurations.elementAtIndex(0, "First test destination").testDestination,
                 testsToRun: testArgFile.entries.map { $0.testToRun }

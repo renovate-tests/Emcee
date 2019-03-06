@@ -97,7 +97,7 @@ final class RunTestsCommand: Command {
         let auxiliaryResources = AuxiliaryResources(
             toolResources: ToolResources(
                 fbsimctl: FbsimctlLocation(try ArgumentsReader.validateResourceLocation(arguments.get(self.fbsimctl), key: KnownStringArguments.fbsimctl)),
-                fbxctest: FbxctestLocation(try ArgumentsReader.validateResourceLocation(arguments.get(self.fbxctest), key: KnownStringArguments.fbxctest))
+                runnerBinaryLocation: try ArgumentsReader.runnerBinaryLocation(arguments.get(self.fbxctest), fbxctestKey: KnownStringArguments.fbxctest)
             ),
             plugins: try ArgumentsReader.validateResourceLocations(arguments.get(self.plugins) ?? [], key: KnownStringArguments.plugin).map({ PluginLocation($0) })
         )
@@ -148,7 +148,7 @@ final class RunTestsCommand: Command {
         let testEntriesValidator = TestEntriesValidator(
             eventBus: eventBus,
             runtimeDumpConfiguration: RuntimeDumpConfiguration(
-                fbxctest: auxiliaryResources.toolResources.fbxctest,
+                runnerBinaryLocation: auxiliaryResources.toolResources.runnerBinaryLocation,
                 xcTestBundle: buildArtifacts.xcTestBundle,
                 testDestination: testDestinationConfigurations.elementAtIndex(0, "First test destination").testDestination,
                 testsToRun: onlyId + onlyTest + testArgFile.entries.map { $0.testToRun }

@@ -9,7 +9,7 @@ public struct RuntimeDumpConfiguration {
     public let testRunExecutionBehavior: TestRunExecutionBehavior
     
     /** Path to logic test runner. */
-    public let fbxctest: FbxctestLocation
+    public let runnerBinaryLocation: RunnerBinaryLocation
     
     /** Path to xctest bundle which contents should be dumped in runtime */
     public let xcTestBundle: TestBundleLocation
@@ -21,7 +21,7 @@ public struct RuntimeDumpConfiguration {
     public let testsToRun: [TestToRun]
 
     public init(
-        fbxctest: FbxctestLocation,
+        runnerBinaryLocation: RunnerBinaryLocation,
         xcTestBundle: TestBundleLocation,
         testDestination: TestDestination,
         testsToRun: [TestToRun])
@@ -36,7 +36,7 @@ public struct RuntimeDumpConfiguration {
             environment: [:],
             scheduleStrategy: .individual
         )
-        self.fbxctest = fbxctest
+        self.runnerBinaryLocation = runnerBinaryLocation
         self.xcTestBundle = xcTestBundle
         self.testDestination = testDestination
         self.testsToRun = testsToRun

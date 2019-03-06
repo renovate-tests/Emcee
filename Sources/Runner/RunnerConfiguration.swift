@@ -5,7 +5,7 @@ import ResourceLocationResolver
 
 public struct RunnerConfiguration {
     public let testType: TestType
-    public let fbxctest: FbxctestLocation
+    public let runnerBinaryLocation: RunnerBinaryLocation
     public let buildArtifacts: BuildArtifacts
     public let environment: [String: String]
     public let simulatorSettings: SimulatorSettings
@@ -14,7 +14,7 @@ public struct RunnerConfiguration {
     
     public init(
         testType: TestType,
-        fbxctest: FbxctestLocation,
+        runnerBinaryLocation: RunnerBinaryLocation,
         buildArtifacts: BuildArtifacts,
         environment: [String: String],
         simulatorSettings: SimulatorSettings,
@@ -29,7 +29,7 @@ public struct RunnerConfiguration {
         environment["FB_CRASH_CHECK_WAIT_LIMIT"] = testTimeoutConfiguration.fbxtestCrashCheckTimeout.flatMap { "\($0)" }
         
         self.testType = testType
-        self.fbxctest = fbxctest
+        self.runnerBinaryLocation = runnerBinaryLocation
         self.buildArtifacts = buildArtifacts
         self.environment = environment
         self.simulatorSettings = simulatorSettings

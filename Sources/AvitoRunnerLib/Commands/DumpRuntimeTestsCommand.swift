@@ -38,13 +38,13 @@ final class DumpRuntimeTestsCommand: Command {
     }
     
     func run(with arguments: ArgumentParser.Result) throws {
-        let fbxctest = try ArgumentsReader.validateResourceLocation(arguments.get(self.fbxctest), key: KnownStringArguments.fbxctest)
+        let runnerBinaryLocation = try ArgumentsReader.runnerBinaryLocation(arguments.get(self.fbxctest), fbxctestKey: KnownStringArguments.fbxctest)
         let output = try ArgumentsReader.validateNotNil(arguments.get(self.output), key: KnownStringArguments.output)
         let testDestinations = try ArgumentsReader.testDestinations(arguments.get(self.testDestinations), key: KnownStringArguments.testDestinations)
         let xctestBundle = try ArgumentsReader.validateResourceLocation(arguments.get(self.xctestBundle), key: KnownStringArguments.xctestBundle)
                 
         let configuration = RuntimeDumpConfiguration(
-            fbxctest: FbxctestLocation(fbxctest),
+            runnerBinaryLocation: runnerBinaryLocation,
             xcTestBundle: TestBundleLocation(xctestBundle),
             testDestination: testDestinations[0].testDestination,
             testsToRun: []

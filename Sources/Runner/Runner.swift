@@ -92,11 +92,8 @@ public final class Runner {
         eventBus.post(event: .runnerEvent(.willRun(testEntries: entriesToRun, testContext: testContext)))
         
         let fbxctestOutputProcessor = try FbxctestOutputProcessor(
-            subprocess: Subprocess(
-                arguments: fbxctestArguments(entriesToRun: entriesToRun, simulator: simulator),
-                environment: testContext.environment,
-                maximumAllowedSilenceDuration: configuration.maximumAllowedSilenceDuration ?? 0
-            ),
+            subprocess: createRunnerSubprocess(entriesToRun: entriesToRun, testContext: testContext)
+                .with(maximumAllowedSilenceDuration: configuration.maximumAllowedSilenceDuration ?? 0),
             simulatorId: simulator.identifier,
             singleTestMaximumDuration: configuration.singleTestMaximumDuration,
             onTestStarted: { [weak self] event in self?.testStarted(event: event, testContext: testContext) },
@@ -116,59 +113,20 @@ public final class Runner {
         
         return result
     }
-    
-    private func fbxctestArguments(entriesToRun: [TestEntry], simulator: Simulator) -> [SubprocessArgument] {
-        let resolvableFbxctest = resourceLocationResolver.resolvable(withRepresentable: configuration.fbxctest)
-        var arguments: [SubprocessArgument] =
-            [resolvableFbxctest.asArgumentWith(packageName: PackageName.fbxctest),
-             "-destination", simulator.testDestination.destinationString,
-             configuration.testType.asArgument]
-        
-        let buildArtifacts = configuration.buildArtifacts
-        let resolvableAppBundle = resourceLocationResolver.resolvable(withRepresentable: buildArtifacts.appBundle)
-        let resolvableXcTestBundle = resourceLocationResolver.resolvable(withRepresentable: buildArtifacts.xcTestBundle)
-        
-        switch configuration.testType {
-        case .logicTest:
-            arguments += [resolvableXcTestBundle.asArgument()]
-        case .appTest:
-            arguments += [
-                JoinedSubprocessArgument(
-                    components: [resolvableXcTestBundle.asArgument(), resolvableAppBundle.asArgument()],
-                    separator: ":")]
-        case .uiTest:
-            let resolvableRunnerBundle = resourceLocationResolver.resolvable(withRepresentable: buildArtifacts.runner)
-            let resolvableAdditionalAppBundles = buildArtifacts.additionalApplicationBundles
-                .map { resourceLocationResolver.resolvable(withRepresentable: $0) }
-            let components = ([resolvableXcTestBundle, resolvableRunnerBundle, resolvableAppBundle] + resolvableAdditionalAppBundles)
-                .map { $0.asArgument() }
-            arguments += [JoinedSubprocessArgument(components: components, separator: ":")]
-            
-            if let simulatorLocatizationSettings = configuration.simulatorSettings.simulatorLocalizationSettings {
-                arguments += [
-                    "-simulator-localization-settings",
-                    resourceLocationResolver.resolvable(withRepresentable: simulatorLocatizationSettings).asArgument()
-                ]
-            }
-            if let watchdogSettings = configuration.simulatorSettings.watchdogSettings {
-                arguments += [
-                    "-watchdog-settings",
-                    resourceLocationResolver.resolvable(withRepresentable: watchdogSettings).asArgument()
-                ]
-            }
-        }
-        
-        arguments += entriesToRun.flatMap {
-            ["-only", JoinedSubprocessArgument(components: [resolvableXcTestBundle.asArgument(), $0.testName], separator: ":")]
-        }
-        arguments += ["run-tests", "-sdk", "iphonesimulator"]
-      
-        if type(of: simulator) != Shimulator.self {
-            arguments += ["-workingDirectory", simulator.workingDirectory.asString]
-        }
-        
-        arguments += ["-keep-simulators-alive"]
-        return arguments
+
+    private func createRunnerSubprocess(entriesToRun: [TestEntry], testContext: TestContext) -> Subprocess {
+        let argumentListGenerator = RunnerArgumentListGeneratorProvider.runnerSubprocessGenerator(
+            runnerBinaryLocation: configuration.runnerBinaryLocation
+        )
+        return argumentListGenerator.createSubprocess(
+            buildArtifacts: configuration.buildArtifacts,
+            entriesToRun: entriesToRun,
+            testContext: testContext,
+            resourceLocationResolver: resourceLocationResolver,
+            runnerBinaryLocation: configuration.runnerBinaryLocation,
+            tempFolder: tempFolder,
+            testType: configuration.testType
+        )
     }
     
     private func createTestContext(simulator: Simulator) -> TestContext {
@@ -181,8 +139,7 @@ public final class Runner {
         }
         return TestContext(
             environment: environment,
-            simulatorInfo: simulator.simulatorInfo,
-            testDestination: simulator.testDestination
+            simulatorInfo: simulator.simulatorInfo
         )
     }
     
@@ -331,10 +288,4 @@ public final class Runner {
         )
     }
     
-}
-
-private extension TestType {
-    var asArgument: SubprocessArgument {
-        return "-" + self.rawValue
-    }
 }

@@ -38,13 +38,15 @@ public struct TestDestination: Hashable, CustomStringConvertible, Codable {
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         let deviceType = try container.decode(String.self, forKey: .deviceType)
-        let runtime = try (try container.decodeIfPresent(String.self, forKey: .runtime)) ?? (try container.decode(String.self, forKey: .iOSVersion))
+        let runtime = try (try container.decodeIfPresent(String.self, forKey: .runtime))
+            ?? (try container.decode(String.self, forKey: .iOSVersion))
         let resourceRequirement = try container.decodeIfPresent(Int.self, forKey: .resourceRequirement)
         
         try self.init(
             deviceType: deviceType,
             runtime: runtime,
-            resourceRequirement: resourceRequirement ?? TestDestination.defaultResourceRequirement)
+            resourceRequirement: resourceRequirement ?? TestDestination.defaultResourceRequirement
+        )
     }
     
     public func encode(to encoder: Encoder) throws {

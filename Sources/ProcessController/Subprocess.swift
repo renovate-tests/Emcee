@@ -1,6 +1,6 @@
 import Foundation
 
-public class Subprocess: CustomStringConvertible {
+public final class Subprocess: CustomStringConvertible {
     public let arguments: [SubprocessArgument]
     public let environment: [String: String]
     public let maximumAllowedSilenceDuration: TimeInterval
@@ -25,6 +25,18 @@ public class Subprocess: CustomStringConvertible {
         self.stdoutContentsFile = stdoutContentsFile
         self.stderrContentsFile = stderrContentsFile
         self.stdinContentsFile = stdinContentsFile
+    }
+
+    public func with(maximumAllowedSilenceDuration: TimeInterval) -> Subprocess {
+        return Subprocess(
+            arguments: arguments,
+            environment: environment,
+            maximumAllowedSilenceDuration: maximumAllowedSilenceDuration,
+            allowedTimeToConsumeStdin: allowedTimeToConsumeStdin,
+            stdoutContentsFile: stdoutContentsFile,
+            stderrContentsFile: stderrContentsFile,
+            stdinContentsFile: stdinContentsFile
+        )
     }
     
     public var description: String {

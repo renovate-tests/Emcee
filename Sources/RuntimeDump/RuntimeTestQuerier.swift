@@ -57,7 +57,7 @@ public final class RuntimeTestQuerier {
         
         let runnerConfiguration = RunnerConfiguration(
             testType: .logicTest,
-            fbxctest: configuration.fbxctest,
+            runnerBinaryLocation: configuration.runnerBinaryLocation,
             buildArtifacts: BuildArtifacts.onlyWithXctestBundle(xcTestBundle: configuration.xcTestBundle),
             environment: configuration.testRunExecutionBehavior.environment.byMergingWith(
                 ["AVITO_TEST_RUNNER_RUNTIME_TESTS_EXPORT_PATH": runtimeEntriesJSONPath.asString]

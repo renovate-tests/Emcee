@@ -826,7 +826,9 @@ let package = Package(
                 "Models",
                 "SimulatorPool",
                 "TempFolder",
-                "TestsWorkingDirectorySupport"
+                "TestRunner",
+                "TestsWorkingDirectorySupport",
+                "XcTestRun"
             ]
         ),
         .testTarget(
@@ -1029,6 +1031,13 @@ let package = Package(
             ]
         ),
         .target(
+            // MARK: TestRunner
+            name: "TestRunner",
+            dependencies: [
+                "Models"
+            ]
+        ),
+        .target(
             // MARK: TestsWorkingDirectorySupport
             name: "TestsWorkingDirectorySupport",
             dependencies: [
@@ -1105,6 +1114,12 @@ let package = Package(
             dependencies: [
                 "WorkerAlivenessTracker",
                 "WorkerAlivenessTrackerTestHelpers"
+            ]
+        ),
+        .target(
+            // MARK: XcTestRun
+            name: "XcTestRun",
+            dependencies: [
             ]
         )
     ]

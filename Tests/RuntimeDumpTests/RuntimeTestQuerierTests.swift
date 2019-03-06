@@ -70,7 +70,7 @@ final class RuntimeTestQuerierTests: XCTestCase {
     
     private func runtimeDumpConfiguration(testsToRun: [TestToRun]) -> RuntimeDumpConfiguration {
         return RuntimeDumpConfiguration(
-            fbxctest: FbxctestLocation(ResourceLocation.localFilePath(fbxctest)),
+            runnerBinaryLocation: .fbxctest(FbxctestLocation(.localFilePath(fbxctest))),
             xcTestBundle: TestBundleLocation(ResourceLocation.localFilePath("")),
             testDestination: TestDestinationFixtures.testDestination,
             testsToRun: testsToRun)

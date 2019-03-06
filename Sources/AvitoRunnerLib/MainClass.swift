@@ -26,7 +26,7 @@ public final class Main {
     private var parentProcessTracker: ParentProcessTracker?
     
     private func runInProcess() -> Int32 {
-        try! LoggingSetup.setupLogging(stderrVerbosity: Verbosity.info)
+        try! LoggingSetup.setupLogging(stderrVerbosity: Verbosity.verboseDebug)
         defer { LoggingSetup.tearDown() }
         
         Logger.info("Arguments: \(ProcessInfo.processInfo.arguments)")

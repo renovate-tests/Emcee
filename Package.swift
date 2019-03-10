@@ -359,6 +359,7 @@ let package = Package(
                 "Metrics",
                 "Models",
                 "ProcessController",
+                "TestRunner",
                 "Timer",
                 "Utility"
             ]
@@ -828,7 +829,7 @@ let package = Package(
                 "TempFolder",
                 "TestRunner",
                 "TestsWorkingDirectorySupport",
-                "XcTestRun"
+                "Xcodebuild"
             ]
         ),
         .testTarget(
@@ -1034,7 +1035,9 @@ let package = Package(
             // MARK: TestRunner
             name: "TestRunner",
             dependencies: [
-                "Models"
+                "Models",
+                "ResourceLocationResolver",
+                "TempFolder"
             ]
         ),
         .target(
@@ -1114,6 +1117,19 @@ let package = Package(
             dependencies: [
                 "WorkerAlivenessTracker",
                 "WorkerAlivenessTrackerTestHelpers"
+            ]
+        ),
+        .target(
+            // MARK: Xcodebuild
+            name: "Xcodebuild",
+            dependencies: [
+                "Logging",
+                "Models",
+                "ProcessController",
+                "ResourceLocationResolver",
+                "TempFolder",
+                "TestRunner",
+                "XcTestRun"
             ]
         ),
         .target(

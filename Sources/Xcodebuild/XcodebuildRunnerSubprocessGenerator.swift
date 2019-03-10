@@ -3,11 +3,11 @@ import Logging
 import Models
 import ProcessController
 import ResourceLocationResolver
-import SimulatorPool
 import TempFolder
+import TestRunner
 import XcTestRun
 
-public final class XcodebuildRunnerSubprocessGenerator: RunnerSubprocessGenerator {
+public final class XcodebuildRunnerSubprocessGenerator {
     public init() {}
 
     public func createSubprocess(

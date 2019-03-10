@@ -3,6 +3,7 @@ import Foundation
 import LocalHostDeterminer
 import Logging
 import ProcessController
+import TestRunner
 import Timer
 
 public final class FbxctestOutputProcessor: ProcessControllerDelegate {
@@ -18,14 +19,12 @@ public final class FbxctestOutputProcessor: ProcessControllerDelegate {
         subprocess: Subprocess,
         simulatorId: String,
         singleTestMaximumDuration: TimeInterval,
-        onTestStarted: @escaping ((TestStartedEvent) -> ()),
-        onTestStopped: @escaping ((TestEventPair) -> ())
-        )
-        throws
+        testLifecycleListener: TestLifecycleListener
+        ) throws
     {
         self.simulatorId = simulatorId
         self.singleTestMaximumDuration = singleTestMaximumDuration
-        self.eventsListener = TestEventsListener(onTestStarted: onTestStarted, onTestStopped: onTestStopped)
+        self.eventsListener = TestEventsListener(testLifecycleListener: testLifecycleListener)
         self.processController = try ProcessController(subprocess: subprocess)
         self.processController.delegate = self
     }
@@ -35,7 +34,7 @@ public final class FbxctestOutputProcessor: ProcessControllerDelegate {
         processController.startAndListenUntilProcessDies()
     }
     
-    public var testEventPairs: [TestEventPair] {
+    public var testEventPairs: [FbxctestTestEventPair] {
         return eventsListener.allEventPairs
     }
     

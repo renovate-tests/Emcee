@@ -1,6 +1,6 @@
 import Foundation
 
-public struct TestEventPair {
+public struct FbxctestTestEventPair {
     public let startEvent: TestStartedEvent
     public let finishEvent: TestFinishedEvent?
 
@@ -11,17 +11,17 @@ public struct TestEventPair {
 }
 
 final class TestEventPairsController {
-    private var testPairs = [TestEventPair]()
+    private var testPairs = [FbxctestTestEventPair]()
     private let workingQueue = DispatchQueue(label: "ru.avito.runner.TestEventPairsController.workingQueue")
     
-    func append(_ pair: TestEventPair) {
+    func append(_ pair: FbxctestTestEventPair) {
         workingQueue.sync {
             testPairs.append(pair)
         }
     }
     
-    var allPairs: [TestEventPair] {
-        var results: [TestEventPair]?
+    var allPairs: [FbxctestTestEventPair] {
+        var results: [FbxctestTestEventPair]?
         workingQueue.sync {
             results = testPairs
         }
@@ -32,16 +32,16 @@ final class TestEventPairsController {
         }
     }
     
-    var lastPair: TestEventPair? {
-        var result: TestEventPair?
+    var lastPair: FbxctestTestEventPair? {
+        var result: FbxctestTestEventPair?
         workingQueue.sync {
             result = testPairs.last
         }
         return result
     }
     
-    func popLast() -> TestEventPair? {
-        var result: TestEventPair?
+    func popLast() -> FbxctestTestEventPair? {
+        var result: FbxctestTestEventPair?
         workingQueue.sync {
             result = testPairs.popLast()
         }

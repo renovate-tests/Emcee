@@ -1,27 +1,21 @@
 import Dispatch
 import Foundation
 import Logging
+import TestRunner
 
 final class TestEventsListener {    
     private let pairsController = TestEventPairsController()
-    
-    private let onTestStarted: ((TestStartedEvent) -> ())
-    private let onTestStopped: ((TestEventPair) -> ())
+    private let testLifecycleListener: TestLifecycleListener
 
-    public init(
-        onTestStarted: @escaping ((TestStartedEvent) -> ()),
-        onTestStopped: @escaping ((TestEventPair) -> ())
-        )
-    {
-        self.onTestStarted = onTestStarted
-        self.onTestStopped = onTestStopped
+    public init(testLifecycleListener: TestLifecycleListener) {
+        self.testLifecycleListener = testLifecycleListener
     }
     
     func testStarted(_ event: TestStartedEvent) {
         pairsController.append(
-            TestEventPair(startEvent: event, finishEvent: nil)
+            FbxctestTestEventPair(startEvent: event, finishEvent: nil)
         )
-        onTestStarted(event)
+        testLifecycleListener.testStarted(testEntry: event.testEntry)
     }
     
     func testFinished(_ event: TestFinishedEvent) {
@@ -35,9 +29,10 @@ final class TestEventsListener {
             Logger.warning("The result for test \(event.testName) (\(event.result) will be lost.")
             return
         }
-        let newPair = TestEventPair(startEvent: pair.startEvent, finishEvent: event)
+        let newPair = FbxctestTestEventPair(startEvent: pair.startEvent, finishEvent: event)
         pairsController.append(newPair)
-        onTestStopped(newPair)
+
+        testLifecycleListener.testStopped(succeeded: event.succeeded, testEntry: event.testEntry)
     }
     
     func testPlanFinished(_ event: TestPlanFinishedEvent) {
@@ -106,11 +101,11 @@ final class TestEventsListener {
         testFinished(failureEvent)
     }
     
-    var allEventPairs: [TestEventPair] {
+    var allEventPairs: [FbxctestTestEventPair] {
         return pairsController.allPairs
     }
     
-    var lastStartedButNotFinishedTestEventPair: TestEventPair? {
+    var lastStartedButNotFinishedTestEventPair: FbxctestTestEventPair? {
         if let pair = pairsController.lastPair, pair.finishEvent == nil {
             return pair
         }

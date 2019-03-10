@@ -8,7 +8,9 @@ import ProcessController
 import ResourceLocationResolver
 import SimulatorPool
 import TempFolder
+import TestRunner
 import TestsWorkingDirectorySupport
+import Xcodebuild
 import fbxctest
 
 /// This class runs the given tests on a single simulator.
@@ -86,24 +88,28 @@ public final class Runner {
         }
         
         Logger.info("Will run \(entriesToRun.count) tests on simulator \(simulator)")
-        
+
         let testContext = createTestContext(simulator: simulator)
+        let runtimeTestEventsListener = RuntimeTestEventsListener(eventBus: eventBus, testContext: testContext)
         
         eventBus.post(event: .runnerEvent(.willRun(testEntries: entriesToRun, testContext: testContext)))
         
-        let fbxctestOutputProcessor = try FbxctestOutputProcessor(
-            subprocess: createRunnerSubprocess(entriesToRun: entriesToRun, testContext: testContext)
-                .with(maximumAllowedSilenceDuration: configuration.maximumAllowedSilenceDuration ?? 0),
-            simulatorId: simulator.identifier,
+        let testRunner = TestRunnerProvider.createTestRunner(runnerBinaryLocation: configuration.runnerBinaryLocation)
+        let testEventPairs = try testRunner.run(
+            buildArtifacts: configuration.buildArtifacts,
+            entriesToRun: entriesToRun,
+            maximumAllowedSilenceDuration: configuration.maximumAllowedSilenceDuration ?? 0,
+            resourceLocationResolver: resourceLocationResolver,
             singleTestMaximumDuration: configuration.singleTestMaximumDuration,
-            onTestStarted: { [weak self] event in self?.testStarted(event: event, testContext: testContext) },
-            onTestStopped: { [weak self] pair in self?.testStopped(eventPair: pair, testContext: testContext) }
+            testContext: testContext,
+            tempFolder: tempFolder,
+            testLifecycleListener: runtimeTestEventsListener,
+            testType: configuration.testType
         )
-        fbxctestOutputProcessor.processOutputAndWaitForProcessTermination()
         
         let result = prepareResults(
             requestedEntriesToRun: entriesToRun,
-            testEventPairs: fbxctestOutputProcessor.testEventPairs
+            testEventPairs: testEventPairs
         )
         
         eventBus.post(event: .runnerEvent(.didRun(results: result, testContext: testContext)))
@@ -114,21 +120,6 @@ public final class Runner {
         return result
     }
 
-    private func createRunnerSubprocess(entriesToRun: [TestEntry], testContext: TestContext) -> Subprocess {
-        let argumentListGenerator = RunnerArgumentListGeneratorProvider.runnerSubprocessGenerator(
-            runnerBinaryLocation: configuration.runnerBinaryLocation
-        )
-        return argumentListGenerator.createSubprocess(
-            buildArtifacts: configuration.buildArtifacts,
-            entriesToRun: entriesToRun,
-            testContext: testContext,
-            resourceLocationResolver: resourceLocationResolver,
-            runnerBinaryLocation: configuration.runnerBinaryLocation,
-            tempFolder: tempFolder,
-            testType: configuration.testType
-        )
-    }
-    
     private func createTestContext(simulator: Simulator) -> TestContext {
         var environment = configuration.environment
         do {
@@ -158,17 +149,18 @@ public final class Runner {
     
     private func prepareResult(
         requestedEntryToRun: TestEntry,
-        testEventPairs: [TestEventPair])
-        -> TestEntryResult
+        testEventPairs: [TestEventPair]
+        ) -> TestEntryResult
     {
         let correspondingEventPair = testEventPairForEntry(
             requestedEntryToRun,
-            testEventPairs: testEventPairs)
+            testEventPairs: testEventPairs
+        )
         
-        if let correspondingEventPair = correspondingEventPair, let finishEvent = correspondingEventPair.finishEvent {
+        if let correspondingEventPair = correspondingEventPair, let finishEvent = correspondingEventPair.testFinishEvent {
             return testEntryResultForFinishedTest(
                 testEntry: requestedEntryToRun,
-                startEvent: correspondingEventPair.startEvent,
+                startEvent: correspondingEventPair.testStartEvent,
                 finishEvent: finishEvent
             )
         } else {
@@ -178,8 +170,8 @@ public final class Runner {
     
     private func testEntryResultForFinishedTest(
         testEntry: TestEntry,
-        startEvent: TestStartedEvent,
-        finishEvent: TestFinishedEvent
+        startEvent: TestStartEvent,
+        finishEvent: TestFinishEvent
         ) -> TestEntryResult
     {
         return .withResult(
@@ -187,7 +179,7 @@ public final class Runner {
             testRunResult: TestRunResult(
                 succeeded: finishEvent.succeeded,
                 exceptions: finishEvent.exceptions.map { TestException(reason: $0.reason, filePathInProject: $0.filePathInProject, lineNumber: $0.lineNumber) },
-                duration: finishEvent.totalDuration,
+                duration: finishEvent.timestamp.timeIntervalSince(startEvent.timestamp),
                 startTime: startEvent.timestamp,
                 finishTime: finishEvent.timestamp,
                 hostName: startEvent.hostName ?? "host was not set to TestStartedEvent",
@@ -202,13 +194,13 @@ public final class Runner {
         testEventPairs: [TestEventPair])
         -> TestEventPair?
     {
-        return testEventPairs.first(where: { $0.startEvent.testName == entry.testName })
+        return testEventPairs.first(where: { $0.testStartEvent.testEntry == entry })
     }
     
     private func missingEntriesForScheduledEntries(
         expectedEntriesToRun: [TestEntry],
-        collectedResults: RunResult)
-        -> [TestEntry]
+        collectedResults: RunResult
+        ) -> [TestEntry]
     {
         let receivedTestEntries = Set(collectedResults.nonLostTestEntryResults.map { $0.testEntry })
         return expectedEntriesToRun.filter { !receivedTestEntries.contains($0) }
@@ -246,46 +238,4 @@ public final class Runner {
             )
         )
     }
-    
-    private func testStarted(event: TestStartedEvent, testContext: TestContext) {
-        eventBus.post(
-            event: .runnerEvent(.testStarted(testEntry: event.testEntry, testContext: testContext))
-        )
-        
-        MetricRecorder.capture(
-            TestStartedMetric(
-                host: event.hostName ?? "unknown_host",
-                testClassName: event.testEntry.className,
-                testMethodName: event.testEntry.methodName
-            )
-        )
-    }
-    
-    private func testStopped(eventPair: TestEventPair, testContext: TestContext) {
-        let event = eventPair.startEvent
-        let succeeded = eventPair.finishEvent?.succeeded ?? false
-        eventBus.post(
-            event: .runnerEvent(.testFinished(testEntry: event.testEntry, succeeded: succeeded, testContext: testContext))
-        )
-        
-        let testResult = eventPair.finishEvent?.result ?? "unknown_result"
-        let testDuration = eventPair.finishEvent?.totalDuration ?? 0
-        MetricRecorder.capture(
-            TestFinishedMetric(
-                result: testResult,
-                host: eventPair.startEvent.hostName ?? "unknown_host",
-                testClassName: event.testEntry.className,
-                testMethodName: event.testEntry.methodName,
-                testsFinishedCount: 1
-            ),
-            TestDurationMetric(
-                result: testResult,
-                host: eventPair.startEvent.hostName ?? "unknown_host",
-                testClassName: event.testEntry.className,
-                testMethodName: event.testEntry.methodName,
-                duration: testDuration
-            )
-        )
-    }
-    
 }

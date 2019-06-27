@@ -36,12 +36,13 @@ let package = Package(
     dependencies: [
         // MARK: - Dependencies
         .package(url: "https://github.com/0x7fs/CountedSet", .branch("master")),
-        .package(url: "https://github.com/beefon/swift-package-manager.git", .branch("swift-5.0-branch")),
-        .package(url: "https://github.com/avito-tech/GraphiteClient.git", .exact("0.1.0")),
         .package(url: "https://github.com/IBM-Swift/BlueSignals.git", .exact("1.0.16")),
-        .package(url: "https://github.com/jakeheis/Shout.git", .branch("master")),
+        .package(url: "https://github.com/Weebly/OrderedSet", .exact("5.0.0")),
+        .package(url: "https://github.com/avito-tech/GraphiteClient.git", .exact("0.1.0")),
+        .package(url: "https://github.com/beefon/swift-package-manager.git", .branch("swift-5.0-branch")),
         .package(url: "https://github.com/daltoniam/Starscream.git", .exact("3.0.6")),
         .package(url: "https://github.com/httpswift/swifter.git", .exact("1.4.6")),
+        .package(url: "https://github.com/jakeheis/Shout.git", .branch("master")),
         .package(url: "https://github.com/weichsel/ZIPFoundation/", from: "0.9.6")
     ],
     targets: [
@@ -103,18 +104,20 @@ let package = Package(
                 "LoggingSetup",
                 "Metrics",
                 "Models",
+                "PathLib",
                 "PluginManager",
                 "PortDeterminer",
                 "ProcessController",
                 "RemoteQueue",
                 "ResourceLocationResolver",
-                "Utility",
                 "SSHDeployer",
                 "ScheduleStrategy",
                 "Scheduler",
                 "SignalHandling",
-                "Version",
-                "UniqueIdentifierGenerator"
+                "TempFolder",
+                "UniqueIdentifierGenerator",
+                "Utility",
+                "Version"
             ]
         ),
         .testTarget(
@@ -225,7 +228,7 @@ let package = Package(
                 "Extensions",
                 "Logging",
                 "Models",
-                "Utility",
+                "TempFolder",
                 "ZIPFoundation"
             ]
         ),
@@ -244,6 +247,7 @@ let package = Package(
                 "LaunchdUtils",
                 "Logging",
                 "Models",
+                "PathLib",
                 "SSHDeployer",
                 "TempFolder",
                 "Version"
@@ -258,9 +262,9 @@ let package = Package(
                 "Extensions",
                 "Models",
                 "ModelsTestHelpers",
+                "PathLib",
                 "ResourceLocationResolver",
-                "TempFolder",
-                "Utility"
+                "TempFolder"
             ]
         ),
         .target(
@@ -307,8 +311,8 @@ let package = Package(
                 "Scheduler",
                 "SimulatorPool",
                 "SynchronousWaiter",
-                "Timer",
-                "Utility"
+                "TempFolder",
+                "Timer"
             ]
         ),
         .testTarget(
@@ -348,7 +352,7 @@ let package = Package(
             name: "ExtensionsTests",
             dependencies: [
                 "Extensions",
-                "Utility"
+                "TempFolder"
             ]
         ),
         .target(
@@ -370,23 +374,22 @@ let package = Package(
                 "Metrics",
                 "Models",
                 "ProcessController",
-                "Timer",
-                "Utility"
+                "Timer"
             ]
         ),
         .target(
             // MARK: FileCache
             name: "FileCache",
             dependencies: [
-                "Extensions",
-                "Utility"
+                "Extensions"
             ]
         ),
         .testTarget(
             // MARK: FileCacheTests
             name: "FileCacheTests",
             dependencies: [
-                "FileCache"
+                "FileCache",
+                "TempFolder"
             ]
         ),
         .target(
@@ -422,7 +425,6 @@ let package = Package(
             // MARK: JSONStreamTests
             name: "JSONStreamTests",
             dependencies: [
-                "Utility",
                 "JSONStream"
             ]
         ),
@@ -509,8 +511,9 @@ let package = Package(
                 "LocalHostDeterminer",
                 "Logging",
                 "Metrics",
+                "PathLib",
                 "Sentry",
-                "Utility",
+                "TempFolder",
                 "Version"
             ]
         ),
@@ -519,7 +522,7 @@ let package = Package(
             name: "LoggingTests",
             dependencies: [
                 "Logging",
-                "Utility"
+                "TempFolder"
             ]
         ),
         .target(
@@ -583,8 +586,7 @@ let package = Package(
                 "SimulatorVideoRecorder",
                 "Starscream",
                 "SynchronousWaiter",
-                "TestsWorkingDirectorySupport",
-                "Utility"
+                "TestsWorkingDirectorySupport"
             ]
         ),
         .target(
@@ -596,6 +598,7 @@ let package = Package(
                 "Logging",
                 "ResourceLocationResolver",
                 "Models",
+                "PathLib",
                 "ProcessController",
                 "Scheduler",
                 "Swifter",
@@ -611,7 +614,7 @@ let package = Package(
                 "ModelsTestHelpers",
                 "PluginManager",
                 "ResourceLocationResolver",
-                "Utility"
+                "TempFolder"
             ]
         ),
         .target(
@@ -636,9 +639,9 @@ let package = Package(
             dependencies: [
                 "Extensions",
                 "Logging",
+                "PathLib",
                 "ResourceLocationResolver",
-                "Timer",
-                "Utility"
+                "Timer"
             ]
         ),
         .testTarget(
@@ -646,8 +649,9 @@ let package = Package(
             name: "ProcessControllerTests",
             dependencies: [
                 "Extensions",
+                "PathLib",
                 "ProcessController",
-                "Utility"
+                "TempFolder"
             ]
         ),
         .target(
@@ -658,8 +662,7 @@ let package = Package(
                 "Models",
                 "RESTMethods",
                 "SynchronousWaiter",
-                "Version",
-                "Utility"
+                "Version"
             ]
         ),
         .testTarget(
@@ -801,6 +804,7 @@ let package = Package(
             name: "ResourceLocationResolverTests",
             dependencies: [
                 "FileCache",
+                "PathLib",
                 "ResourceLocationResolver",
                 "Swifter",
                 "TempFolder",
@@ -820,13 +824,14 @@ let package = Package(
             name: "Runner",
             dependencies: [
                 "EventBus",
-                "fbxctest",
                 "LocalHostDeterminer",
                 "Logging",
                 "Models",
+                "PathLib",
                 "SimulatorPool",
                 "TempFolder",
-                "TestsWorkingDirectorySupport"
+                "TestsWorkingDirectorySupport",
+                "fbxctest"
             ]
         ),
         .testTarget(
@@ -840,8 +845,8 @@ let package = Package(
                 "Runner",
                 "ScheduleStrategy",
                 "SimulatorPool",
-                "TestingFakeFbxctest",
-                "TempFolder"
+                "TempFolder",
+                "TestingFakeFbxctest"
             ]
         ),
         .target(
@@ -852,6 +857,7 @@ let package = Package(
                 "Extensions",
                 "Metrics",
                 "Models",
+                "PathLib",
                 "Runner",
                 "SynchronousWaiter",
                 "TempFolder"
@@ -863,6 +869,7 @@ let package = Package(
             dependencies: [
                 "Models",
                 "ModelsTestHelpers",
+                "PathLib",
                 "ResourceLocationResolver",
                 "RuntimeDump",
                 "TestingFakeFbxctest",
@@ -940,12 +947,12 @@ let package = Package(
             name: "SimulatorPool",
             dependencies: [
                 "Extensions",
-                "fbxctest",
                 "Logging",
                 "Models",
+                "OrderedSet",
                 "ProcessController",
                 "TempFolder",
-                "Utility"
+                "fbxctest"
             ]
         ),
         .testTarget(
@@ -954,6 +961,7 @@ let package = Package(
             dependencies: [
                 "Models",
                 "ModelsTestHelpers",
+                "PathLib",
                 "ResourceLocationResolver",
                 "SimulatorPool",
                 "SynchronousWaiter",
@@ -974,11 +982,11 @@ let package = Package(
             name: "SSHDeployer",
             dependencies: [
                 "Ansi",
+                "Deployer",
                 "Extensions",
                 "Logging",
                 "Models",
-                "Utility",
-                "Deployer",
+                "PathLib",
                 "Shout"
             ]
         ),
@@ -986,6 +994,7 @@ let package = Package(
             // MARK: SSHDeployerTests
             name: "SSHDeployerTests",
             dependencies: [
+                "PathLib",
                 "SSHDeployer"
             ]
         ),
@@ -1003,13 +1012,14 @@ let package = Package(
             // MARK: TempFolder
             name: "TempFolder",
             dependencies: [
-                "Utility"
+                "PathLib"
             ]
         ),
         .testTarget(
             // MARK: TempFolderTests
             name: "TempFolderTests",
             dependencies: [
+                "PathLib",
                 "TempFolder"
             ]
         ),
@@ -1066,8 +1076,7 @@ let package = Package(
                 "FileCache",
                 "Logging",
                 "Models",
-                "SynchronousWaiter",
-                "Utility"
+                "SynchronousWaiter"
             ]
         ),
         .testTarget(
@@ -1076,8 +1085,8 @@ let package = Package(
             dependencies: [
                 "FileCache",
                 "Swifter",
-                "URLResource",
-                "Utility"
+                "TempFolder",
+                "URLResource"
             ]
         ),
         .target(
@@ -1100,8 +1109,8 @@ let package = Package(
             dependencies: [
                 "Extensions",
                 "FileHasher",
-                "Version",
-                "Utility"
+                "TempFolder",
+                "Version"
             ]
         ),
         .target(

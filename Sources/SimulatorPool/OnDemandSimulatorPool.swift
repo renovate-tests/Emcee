@@ -35,12 +35,12 @@ public class OnDemandSimulatorPool<T> where T: SimulatorController {
         }
     }
     
-    private let tempFolder: TempFolder
+    private let tempFolder: TemporaryFolder
     private var pools = [Key: SimulatorPool<T>]()
     private let syncQueue = DispatchQueue(label: "ru.avito.OnDemandSimulatorPool")
     private let resourceLocationResolver: ResourceLocationResolver
     
-    public init(resourceLocationResolver: ResourceLocationResolver, tempFolder: TempFolder) {
+    public init(resourceLocationResolver: ResourceLocationResolver, tempFolder: TemporaryFolder) {
         self.resourceLocationResolver = resourceLocationResolver
         self.tempFolder = tempFolder
     }

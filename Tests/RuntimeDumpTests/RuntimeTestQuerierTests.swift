@@ -12,7 +12,7 @@ final class RuntimeTestQuerierTests: XCTestCase {
     let eventBus = EventBus()
     let fbxctest = try! FakeFbxctestExecutableProducer.fakeFbxctestPath(runId: UUID().uuidString)
     let resourceLocationResolver = ResourceLocationResolver()
-    let tempFolder = try! TempFolder()
+    let tempFolder = try! TemporaryFolder()
     let simulatorPool = try! OnDemandSimulatorPoolWithDefaultSimulatorControllerMock()
     
     func test__getting_available_tests__without_application_test_support() throws {

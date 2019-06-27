@@ -62,7 +62,7 @@ final class DumpRuntimeTestsCommand: Command {
             testsToRun: []
         )
 
-        let tempFolder = try TempFolder()
+        let tempFolder = try TemporaryFolder()
         let onDemandSimulatorPool = OnDemandSimulatorPool<DefaultSimulatorController>(
             resourceLocationResolver: resourceLocationResolver,
             tempFolder: tempFolder

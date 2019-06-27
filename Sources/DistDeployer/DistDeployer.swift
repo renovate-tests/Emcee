@@ -12,14 +12,14 @@ final class DistDeployer {
     private let deploymentDestinations: [DeploymentDestination]
     private let deployableItems: [DeployableItem]
     private let deployableCommands: [DeployableCommand]
-    private let tempFolder: TempFolder
+    private let tempFolder: TemporaryFolder
 
     public init(
         deploymentId: String,
         deploymentDestinations: [DeploymentDestination],
         deployableItems: [DeployableItem],
         deployableCommands: [DeployableCommand],
-        tempFolder: TempFolder)
+        tempFolder: TemporaryFolder)
     {
         self.deploymentId = deploymentId
         self.deploymentDestinations = deploymentDestinations

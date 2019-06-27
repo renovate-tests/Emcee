@@ -6,7 +6,7 @@ final class OnDemandSimulatorPoolWithDefaultSimulatorControllerMock: OnDemandSim
 
     convenience init() throws {
         let resourceLocationResolver = ResourceLocationResolver()
-        let tempFolder = try TempFolder()
+        let tempFolder = try TemporaryFolder()
 
         self.init(
             resourceLocationResolver: resourceLocationResolver,

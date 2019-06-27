@@ -1,6 +1,6 @@
+@testable import SimulatorPool
 import Models
 import ModelsTestHelpers
-@testable import SimulatorPool
 import ResourceLocationResolver
 import SynchronousWaiter
 import TempFolder
@@ -8,10 +8,10 @@ import XCTest
 
 class SimulatorPoolTests: XCTestCase {
     
-    var tempFolder: TempFolder!
+    var tempFolder: TemporaryFolder!
     
     override func setUp() {
-        XCTAssertNoThrow(tempFolder = try TempFolder())
+        XCTAssertNoThrow(tempFolder = try TemporaryFolder())
     }
     
     func testThrowingError() throws {

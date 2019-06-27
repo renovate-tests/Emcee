@@ -90,7 +90,7 @@ public final class DistWorker: SchedulerDelegate {
     private func runTests(
         workerConfiguration: WorkerConfiguration,
         onDemandSimulatorPool: OnDemandSimulatorPool<DefaultSimulatorController>,
-        tempFolder: TempFolder)
+        tempFolder: TemporaryFolder)
         throws -> [TestingResult]
     {
         let configuration = bucketConfigurationFactory.createConfiguration(

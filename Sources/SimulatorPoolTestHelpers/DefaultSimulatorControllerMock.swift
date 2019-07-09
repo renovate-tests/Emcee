@@ -1,4 +1,4 @@
-@testable import SimulatorPool
+import SimulatorPool
 import Foundation
 import Models
 
@@ -22,13 +22,5 @@ final class DefaultSimulatorControllerMock: DefaultSimulatorController {
 
     override func deleteSimulator() throws {
         didCallDelete = true
-    }
-
-    static func == (l: DefaultSimulatorControllerMock, r: DefaultSimulatorControllerMock) -> Bool {
-        return l.simulator == r.simulator
-    }
-
-    public override func hash(into hasher: inout Hasher) {
-        hasher.combine(simulator)
     }
 }

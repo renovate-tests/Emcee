@@ -1,171 +1,159 @@
+import ArgLib
 import Foundation
 import Logging
 import Models
-import Utility
+import PathLib
 
-protocol ArgumentDescription {
-    var name: String { get }
-    var comment: String { get }
-    var multiple: Bool { get }
-    var optional: Bool { get }
-}
-
-extension ArgumentDescription {
-    var usage: String {
-        var usage = comment
-        if usage.last != "." {
-            usage += "."
-        }
-        if multiple {
-            usage += " This argument may be repeated multiple times."
-        }
-        if optional {
-            usage += " Optional."
-        }
-        return usage
-    }
-}
-
-enum ArgumentType {
-    case string
-    case int
-    case bool
-}
-
-private struct ArgumentDescriptionHolder: ArgumentDescription {
-    let name: String
-    let comment: String
-    let multiple: Bool
-    let optional: Bool
-    
-    init(name: String, comment: String, multiple: Bool = false, optional: Bool = false) {
-        self.name = name
-        self.comment = comment
-        self.multiple = multiple
-        self.optional = optional
-    }
-}
-
-private let knownStringArguments: [KnownStringArguments: ArgumentDescriptionHolder] = [
-    KnownStringArguments.app: ArgumentDescriptionHolder(
-        name: "--app",
-        comment: "Location of app that will be tested by the UI tests. If value is missing, tests can be executed only as logic tests",
-        optional: true),
-    KnownStringArguments.analyticsConfiguration: ArgumentDescriptionHolder(
-        name: "--analytics-configuration",
-        comment: "Location of analytics configuration JSON file to support various analytic destinations",
-        optional: true),
-    KnownStringArguments.destinationConfigurations: ArgumentDescriptionHolder(
-        name: "--destinaton-configurations",
-        comment: "A JSON file with additional configuration per destination",
-        optional: true),
-    KnownStringArguments.destinations: ArgumentDescriptionHolder(
-        name: "--destinations",
-        comment: "A JSON file with info about the run destinations for distributed test run"),
-    KnownStringArguments.fbsimctl: ArgumentDescriptionHolder(
-        name: "--fbsimctl",
-        comment: "Location of fbsimctl tool, or URL to ZIP archive"),
-    KnownStringArguments.fbxctest: ArgumentDescriptionHolder(
-        name: "--fbxctest",
-        comment: "Location of fbxctest tool, or URL to ZIP archive"),
-    KnownStringArguments.junit: ArgumentDescriptionHolder(
-        name: "--junit",
-        comment: "Where the combined (the one for all test destinations) Junit report should be created",
-        optional: true),
-    KnownStringArguments.output: ArgumentDescriptionHolder(
-        name: "--output",
-        comment: "Path to where should output be stored as JSON file"),
-    KnownStringArguments.plugin: ArgumentDescriptionHolder(
-        name: "--plugin",
-        comment: ".emceeplugin bundle location (or URL to ZIP). Plugin bundle should contain an executable: MyPlugin.emceeplugin/Plugin",
+private let knownArguments: [KnownArguments: ArgumentDescription] = [
+    KnownArguments.app: ArgumentDescription(
+        name: "app",
+        overview: "Location of app that will be tested by the UI tests. If value is missing, tests can be executed only as logic tests",
+        optional: true
+    ),
+    KnownArguments.analyticsConfiguration: ArgumentDescription(
+        name: "analytics-configuration",
+        overview: "Location of analytics configuration JSON file to support various analytic destinations",
+        optional: true
+    ),
+    KnownArguments.destinationConfigurations: ArgumentDescription(
+        name: "destinaton-configurations",
+        overview: "A JSON file with additional configuration per destination",
+        optional: true
+    ),
+    KnownArguments.destinations: ArgumentDescription(
+        name: "destinations",
+        overview: "A JSON file with info about the run destinations for distributed test run"
+    ),
+    KnownArguments.fbsimctl: ArgumentDescription(
+        name: "fbsimctl",
+        overview: "Location of fbsimctl tool, or URL to ZIP archive"
+    ),
+    KnownArguments.fbxctest: ArgumentDescription(
+        name: "fbxctest",
+        overview: "Location of fbxctest tool, or URL to ZIP archive"
+    ),
+    KnownArguments.junit: ArgumentDescription(
+        name: "junit",
+        overview: "Where the combined (the one for all test destinations) Junit report should be created",
+        optional: true
+    ),
+    KnownArguments.output: ArgumentDescription(
+        name: "output",
+        overview: "Path to where should output be stored as JSON file"
+    ),
+    KnownArguments.plugin: ArgumentDescription(
+        name: "plugin",
+        overview: ".emceeplugin bundle location (or URL to ZIP). Plugin bundle should contain an executable: MyPlugin.emceeplugin/Plugin",
         multiple: true,
-        optional: true),
-    KnownStringArguments.queueServer: ArgumentDescriptionHolder(
-        name: "--queue-server",
-        comment: "An address to a server which runs distRun command, e.g. 127.0.0.1:1234"),
-    KnownStringArguments.queueServerDestination: ArgumentDescriptionHolder(
-        name: "--queue-server-destination",
-        comment: "A JSON file with info about deployment destination which will be used to start remote queue server"),
-    KnownStringArguments.queueServerRunConfigurationLocation: ArgumentDescriptionHolder(
-        name: "--queue-server-run-configuration-location",
-        comment: "JSON file location which describes QueueServerRunConfiguration. Either /path/to/file.json, or http://example.com/file.zip#path/to/config.json"),
-    KnownStringArguments.remoteScheduleStrategy: ArgumentDescriptionHolder(
-        name: "--remote-schedule-strategy",
-        comment: "Defines how to scatter tests to the destination machines. Can be: \(ScheduleStrategyType.availableRawValues.joined(separator: ", "))"),
-    KnownStringArguments.runId: ArgumentDescriptionHolder(
-        name: "--run-id",
-        comment: "A logical test run id, usually a random string, e.g. UUID."),
-    KnownStringArguments.scheduleStrategy: ArgumentDescriptionHolder(
-        name: "--schedule-strategy",
-        comment: "Defines how to run tests. Can be: \(ScheduleStrategyType.availableRawValues.joined(separator: ", "))"),
-    KnownStringArguments.simulatorLocalizationSettings: ArgumentDescriptionHolder(
-        name: "--simulator-localization-settings",
-        comment: "Location of JSON file with localization settings",
-        optional: true),
-    KnownStringArguments.tempFolder: ArgumentDescriptionHolder(
-        name: "--temp-folder",
-        comment: "Where to store temporary stuff, including simulator data"),
-    KnownStringArguments.testArgFile: ArgumentDescriptionHolder(
-        name: "--test-arg-file",
-        comment: "JSON file with description of all tests that expected to be ran.",
-        optional: true),
-    KnownStringArguments.testDestinations: ArgumentDescriptionHolder(
-        name: "--test-destinations",
-        comment: "A JSON file with test destination configurations. For runtime dump only first destination will be used."),
-    KnownStringArguments.trace: ArgumentDescriptionHolder(
-        name: "--trace",
-        comment: "Where the combined (the one for all test destinations) Chrome trace should be created",
-        optional: true),
-    KnownStringArguments.watchdogSettings: ArgumentDescriptionHolder(
-        name: "--watchdog-settings",
-        comment: "Location of JSON file with watchdog settings",
-        optional: true),
-    KnownStringArguments.workerId: ArgumentDescriptionHolder(
-        name: "--worker-id",
-        comment: "An identifier used to distinguish between workers. Useful to match with deployment destination's identifier"),
-    KnownStringArguments.xctestBundle: ArgumentDescriptionHolder(
-        name: "--xctest-bundle",
-        comment: "Location of .xctest bundle with your tests"),
+        optional: true
+    ),
+    KnownArguments.queueServer: ArgumentDescription(
+        name: "queue-server",
+        overview: "An address to a server which runs distRun command, e.g. 127.0.0.1:1234"
+    ),
+    KnownArguments.queueServerDestination: ArgumentDescription(
+        name: "queue-server-destination",
+        overview: "A JSON file with info about deployment destination which will be used to start remote queue server"
+    ),
+    KnownArguments.queueServerRunConfigurationLocation: ArgumentDescription(
+        name: "queue-server-run-configuration-location",
+        overview: "JSON file location which describes QueueServerRunConfiguration. Either /path/to/file.json, or http://example.com/file.zip#path/to/config.json"
+    ),
+    KnownArguments.remoteScheduleStrategy: ArgumentDescription(
+        name: "remote-schedule-strategy",
+        overview: "Defines how to scatter tests to the destination machines. Can be: \(ScheduleStrategyType.availableRawValues.joined(separator: ", "))"
+    ),
+    KnownArguments.runId: ArgumentDescription(
+        name: "run-id",
+        overview: "A logical test run id, usually a random string, e.g. UUID."
+    ),
+    KnownArguments.scheduleStrategy: ArgumentDescription(
+        name: "schedule-strategy",
+        overview: "Defines how to run tests. Can be: \(ScheduleStrategyType.availableRawValues.joined(separator: ", "))"
+    ),
+    KnownArguments.simulatorLocalizationSettings: ArgumentDescription(
+        name: "simulator-localization-settings",
+        overview: "Location of JSON file with localization settings",
+        optional: true
+    ),
+    KnownArguments.tempFolder: ArgumentDescription(
+        name: "temp-folder",
+        overview: "Where to store temporary stuff, including simulator data"
+    ),
+    KnownArguments.testArgFile: ArgumentDescription(
+        name: "test-arg-file",
+        overview: "JSON file with description of all tests that expected to be ran.",
+        optional: true
+    ),
+    KnownArguments.testDestinations: ArgumentDescription(
+        name: "test-destinations",
+        overview: "A JSON file with test destination configurations. For runtime dump only first destination will be used."
+    ),
+    KnownArguments.trace: ArgumentDescription(
+        name: "trace",
+        overview: "Where the combined (the one for all test destinations) Chrome trace should be created",
+        optional: true
+    ),
+    KnownArguments.watchdogSettings: ArgumentDescription(
+        name: "watchdog-settings",
+        overview: "Location of JSON file with watchdog settings",
+        optional: true
+    ),
+    KnownArguments.workerId: ArgumentDescription(
+        name: "worker-id",
+        overview: "An identifier used to distinguish between workers. Useful to match with deployment destination's identifier"
+    ),
+    KnownArguments.xctestBundle: ArgumentDescription(
+        name: "xctest-bundle",
+        overview: "Location of .xctest bundle with your tests"
+    ),
+
+    KnownArguments.fbxctestSilenceTimeout: ArgumentDescription(
+        name: "fbxctest-silence-timeout",
+        overview: "A maximum allowed duration for a fbxctest stdout/stderr to be silent",
+        optional: true
+    ),
+    KnownArguments.fbxtestFastTimeout: ArgumentDescription(
+        name: "fbxctest-fast-timeout",
+        overview: "Overrides fbxtest's internal FastTimeout",
+        optional: true
+    ),
+    KnownArguments.fbxtestRegularTimeout: ArgumentDescription(
+        name: "fbxctest-regular-timeout",
+        overview: "Overrides fbxtest's internal RegularTimeout",
+        optional: true
+    ),
+    KnownArguments.fbxtestSlowTimeout: ArgumentDescription(
+        name: "fbxctest-slow-timeout",
+        overview: "Overrides fbxtest's internal SlowTimeout",
+        optional: true
+    ),
+    KnownArguments.fbxtestBundleReadyTimeout: ArgumentDescription(
+        name: "fbxctest-bundle-ready-timeout",
+        overview: "Overrides fbxtest's internal BundleReady Timeout",
+        optional: true
+    ),
+    KnownArguments.fbxtestCrashCheckTimeout: ArgumentDescription(
+        name: "fbxctest-crash-check-timeout",
+        overview: "Overrides fbxtest's internal CrashCheck Timeout",
+        optional: true
+    ),
+    KnownArguments.numberOfSimulators: ArgumentDescription(
+        name: "number-of-simulators",
+        overview: "How many simlutors can be used for running UI tests in parallel"
+    ),
+    KnownArguments.priority: ArgumentDescription(
+        name: "priority",
+        overview: "Job priority. Possible values are in range: [0...999]",
+        optional: true
+    ),
+    KnownArguments.singleTestTimeout: ArgumentDescription(
+        name: "single-test-timeout",
+        overview: "How long each test may run"
+    )
 ]
 
-private let knownUIntArguments: [KnownUIntArguments: ArgumentDescriptionHolder] = [
-    KnownUIntArguments.fbxctestSilenceTimeout: ArgumentDescriptionHolder(
-        name: "--fbxctest-silence-timeout",
-        comment: "A maximum allowed duration for a fbxctest stdout/stderr to be silent",
-        optional: true),
-    KnownUIntArguments.fbxtestFastTimeout: ArgumentDescriptionHolder(
-        name: "--fbxctest-fast-timeout",
-        comment: "Overrides fbxtest's internal FastTimeout",
-        optional: true),
-    KnownUIntArguments.fbxtestRegularTimeout: ArgumentDescriptionHolder(
-        name: "--fbxctest-regular-timeout",
-        comment: "Overrides fbxtest's internal RegularTimeout",
-        optional: true),
-    KnownUIntArguments.fbxtestSlowTimeout: ArgumentDescriptionHolder(
-        name: "--fbxctest-slow-timeout",
-        comment: "Overrides fbxtest's internal SlowTimeout",
-        optional: true),
-    KnownUIntArguments.fbxtestBundleReadyTimeout: ArgumentDescriptionHolder(
-        name: "--fbxctest-bundle-ready-timeout",
-        comment: "Overrides fbxtest's internal BundleReady Timeout",
-        optional: true),
-    KnownUIntArguments.fbxtestCrashCheckTimeout: ArgumentDescriptionHolder(
-        name: "--fbxctest-crash-check-timeout",
-        comment: "Overrides fbxtest's internal CrashCheck Timeout",
-        optional: true),
-    KnownUIntArguments.numberOfSimulators: ArgumentDescriptionHolder(
-        name: "--number-of-simulators",
-        comment: "How many simlutors can be used for running UI tests in parallel"),
-    KnownUIntArguments.priority: ArgumentDescriptionHolder(
-        name: "--priority",
-        comment: "Job priority. Possible values are in range: [0...999]",
-        optional: true),
-    KnownUIntArguments.singleTestTimeout: ArgumentDescriptionHolder(
-        name: "--single-test-timeout",
-        comment: "How long each test may run"),
-]
-
-enum KnownStringArguments: ArgumentDescription {
+public enum KnownArguments {
     case additionalApp
     case app
     case analyticsConfiguration
@@ -193,24 +181,6 @@ enum KnownStringArguments: ArgumentDescription {
     case workerId
     case xctestBundle
     
-    var name: String {
-        return knownStringArguments[self]!.name
-    }
-    
-    var comment: String {
-        return knownStringArguments[self]!.comment
-    }
-    
-    var multiple: Bool {
-        return knownStringArguments[self]!.multiple
-    }
-    
-    var optional: Bool {
-        return knownStringArguments[self]!.optional
-    }
-}
-
-enum KnownUIntArguments: ArgumentDescription {
     case fbxctestSilenceTimeout
     case fbxtestBundleReadyTimeout
     case fbxtestCrashCheckTimeout
@@ -221,86 +191,23 @@ enum KnownUIntArguments: ArgumentDescription {
     case priority
     case singleTestTimeout
     
-    var name: String {
-        return knownUIntArguments[self]!.name
-    }
-    
-    var comment: String {
-        return knownUIntArguments[self]!.comment
-    }
-    
-    var multiple: Bool {
-        return knownUIntArguments[self]!.multiple
-    }
-    
-    var optional: Bool {
-        return knownUIntArguments[self]!.optional
+    public var argumentDescription: ArgumentDescription {
+        return knownArguments[self]!
     }
 }
 
 enum ArgumentsError: Error, CustomStringConvertible {
-    case argumentIsMissing(ArgumentDescription)
-    case argumentValueCannotBeUsed(ArgumentDescription, Error)
+    case argumentIsMissing(KnownArguments)
+    case argumentValueCannotBeUsed(String)
     
     var description: String {
         switch self {
         case .argumentIsMissing(let argument):
-            return "Missing argument: \(argument.name). Usage: \(argument.usage)"
-        case .argumentValueCannotBeUsed(let argument, let error):
-            return "The provided value for argument '\(argument.name)' cannot be used, error: \(error)"
+            return "Missing argument: \(argument.argumentDescription.name). Usage: \(argument.argumentDescription.usage)"
+        case .argumentValueCannotBeUsed(let argumentValue):
+            return "The provided value for argument cannot be used: '\(argumentValue)'"
         }
     }
-}
-
-extension ArgumentParser {
-    func add(stringArgument: KnownStringArguments, file: StaticString = #file, line: Int = #line) -> OptionArgument<String> {
-        guard stringArgument.multiple == false else {
-            Logger.fatal("Use add(multipleStringArgument:) for \(stringArgument.name) at \(file):\(line)")
-        }
-        return add(option: stringArgument.name, kind: String.self, usage: stringArgument.usage)
-    }
-    
-    func add(multipleStringArgument: KnownStringArguments, file: StaticString = #file, line: Int = #line) -> OptionArgument<[String]> {
-        guard multipleStringArgument.multiple == true else {
-            Logger.fatal("Use add(stringArgument:) for \(multipleStringArgument.name) at \(file):\(line)")
-        }
-        return add(
-            option: multipleStringArgument.name,
-            kind: [String].self,
-            strategy: .oneByOne,
-            usage: multipleStringArgument.usage)
-    }
-    
-    func add(intArgument: KnownUIntArguments, file: StaticString = #file, line: Int = #line) -> OptionArgument<UInt> {
-        guard intArgument.multiple == false else {
-            Logger.fatal("Use add(multipleIntArgument:) for \(intArgument.name) at \(file):\(line)")
-        }
-        return add(option: intArgument.name, kind: UInt.self, usage: intArgument.usage)
-    }
-    
-    func add(multipleIntArgument: KnownUIntArguments, file: StaticString = #file, line: Int = #line) -> OptionArgument<[UInt]> {
-        guard multipleIntArgument.multiple == true else {
-            Logger.fatal("Use add(multipleIntArgument:) for \(multipleIntArgument.name) at \(file):\(line)")
-        }
-        return add(
-            option: multipleIntArgument.name,
-            kind: [UInt].self,
-            strategy: .oneByOne,
-            usage: multipleIntArgument.usage)
-    }
-}
-
-
-extension UInt: ArgumentKind {
-    public init(argument: String) throws {
-        guard let uint = UInt(argument) else {
-            throw ArgumentConversionError.typeMismatch(value: argument, expectedType: UInt.self)
-        }
-        
-        self = uint
-    }
-    
-    public static let completion: ShellCompletion = .none
 }
 
 enum AdditionalArgumentValidationError: Error, CustomStringConvertible {
@@ -314,5 +221,56 @@ enum AdditionalArgumentValidationError: Error, CustomStringConvertible {
         case .notFound(let path):
             return "File not found: '\(path)'"
         }
+    }
+}
+
+extension ResourceLocation: ParsableArgument {
+    public init(argumentValue: String) throws {
+        self = try ResourceLocation.from(argumentValue)
+    }
+}
+
+public extension TestDestinationConfiguration {
+    static func fromFile(path: String) throws -> [TestDestinationConfiguration] {
+        let data = try Data(contentsOf: URL(fileURLWithPath: path))
+        return try ArgumentsReader.decoderWithSnakeCaseSupport.decode(
+            [TestDestinationConfiguration].self,
+            from: data
+        )
+    }
+}
+
+extension AbsolutePath: ParsableArgument {
+    public convenience init(argumentValue: String) throws {
+        self.init(argumentValue)
+    }
+}
+
+extension SocketAddress: ParsableArgument {
+    public convenience init(argumentValue: String) throws {
+        let socket = try SocketAddress.from(string: argumentValue)
+        self.init(host: socket.host, port: socket.port)
+    }
+}
+
+extension ScheduleStrategyType: ParsableArgument {
+    public init(argumentValue: String) throws {
+        guard let value = ScheduleStrategyType(rawValue: argumentValue) else {
+            throw ArgumentsError.argumentValueCannotBeUsed(argumentValue)
+        }
+        self = value
+    }
+}
+
+extension TestArgFile: ParsableArgument {
+    public init(argumentValue: String) throws {
+        let data = try Data(contentsOf: URL(fileURLWithPath: argumentValue))
+        self = try ArgumentsReader.decoderWithSnakeCaseSupport.decode(TestArgFile.self, from: data)
+    }
+}
+
+extension Priority: ParsableArgument {
+    public convenience init(argumentValue: String) throws {
+        try self.init(intValue: try UInt(argumentValue: argumentValue))
     }
 }

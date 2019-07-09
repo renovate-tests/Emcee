@@ -12,7 +12,7 @@ import TemporaryStuff
  * There is no blocking mechanisms, the assumption is that the callers will use up to numberOfSimulators of threads
  * to borrow and free the simulators.
  */
-public class SimulatorPool<T>: CustomStringConvertible where T: SimulatorController {
+open class SimulatorPool<T>: CustomStringConvertible where T: SimulatorController {
     private let numberOfSimulators: UInt
     private let testDestination: TestDestination
     private var controllers: OrderedSet<T>
@@ -46,7 +46,7 @@ public class SimulatorPool<T>: CustomStringConvertible where T: SimulatorControl
         deleteSimulators()
     }
     
-    public func allocateSimulatorController() throws -> T {
+    open func allocateSimulatorController() throws -> T {
         return try syncQueue.sync {
             guard let simulator = controllers.removeLast() else {
                 throw BorrowError.noSimulatorsLeft
@@ -57,7 +57,7 @@ public class SimulatorPool<T>: CustomStringConvertible where T: SimulatorControl
         }
     }
     
-    public func freeSimulatorController(_ simulator: T) {
+    open func freeSimulatorController(_ simulator: T) {
         syncQueue.sync {
             controllers.append(simulator)
             Logger.verboseDebug("Freed simulator: \(simulator)")
@@ -65,7 +65,7 @@ public class SimulatorPool<T>: CustomStringConvertible where T: SimulatorControl
         }
     }
     
-    public func deleteSimulators() {
+    open func deleteSimulators() {
         syncQueue.sync {
             cancelAutomaticCleanup()
             Logger.verboseDebug("\(self): deleting simulators")
@@ -79,7 +79,7 @@ public class SimulatorPool<T>: CustomStringConvertible where T: SimulatorControl
         }
     }
     
-    public func shutdownSimulators() {
+    open func shutdownSimulators() {
         syncQueue.sync {
             cancelAutomaticCleanup()
             Logger.verboseDebug("\(self): deleting simulators")

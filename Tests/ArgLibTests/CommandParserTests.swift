@@ -33,11 +33,11 @@ class CommandParserTests: XCTestCase {
         
         let expectedHolders: [ArgumentValueHolder] = [
             ArgumentValueHolder(
-                argumentDescription: commandB.arguments.argumentDescriptions[0],
+                argumentName: commandB.arguments.argumentDescriptions[0].name,
                 stringValue: "hello"
             ),
             ArgumentValueHolder(
-                argumentDescription: commandB.arguments.argumentDescriptions[1],
+                argumentName: commandB.arguments.argumentDescriptions[1].name,
                 stringValue: "42"
             )
         ]

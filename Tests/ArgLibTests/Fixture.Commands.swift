@@ -6,7 +6,7 @@ final class CommandA: Command {
     let description: String = ""
     let arguments = Arguments([])
     
-    func run(valueHolders: Set<ArgumentValueHolder>) throws {}
+    func run(payload: CommandPayload) throws {}
 }
 
 final class CommandB: Command {
@@ -19,5 +19,5 @@ final class CommandB: Command {
         ]
     )
     
-    func run(valueHolders: Set<ArgumentValueHolder>) throws {}
+    func run(payload: CommandPayload) throws {}
 }

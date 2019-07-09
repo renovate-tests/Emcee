@@ -7,17 +7,26 @@ public final class CommandInvoker {
         self.commands = commands
     }
     
-    public func invokeSuitableCommand(arguments: [String] = CommandLine.meaningfulArguments) throws {
+    public func invokeSuitableCommand(
+        arguments: [String] = CommandLine.meaningfulArguments,
+        whenDeterminedCommandToRun: (Command) -> () = { _ in }
+    ) throws {
         let command = try CommandParser.choose(
             commandFrom: commands,
             stringValues: arguments
         )
+        
+        whenDeterminedCommandToRun(command)
         
         let valueHolders = try CommandParser.map(
             stringValues: Array(arguments.dropFirst()),
             to: command.arguments.argumentDescriptions
         )
         
-        try command.run(valueHolders: valueHolders)
+        try command.run(
+            payload: CommandPayload(
+                valueHolders: valueHolders
+            )
+        )
     }
 }

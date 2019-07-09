@@ -11,9 +11,9 @@ public enum CommandParserError: Error, CustomStringConvertible {
     public var description: String {
         switch self {
         case .expectedValueAfterDashedArgument(let description):
-            return "Missing argument: \(description.dashedName)"
+            return "Missing argument: \(description.name.expectedInputValue)"
         case .missingValue(let description):
-            return "Expected to have a value next to '\(description.dashedName)'"
+            return "Expected to have a value next to '\(description.name.expectedInputValue)'"
         case .unexpectedValues(let values):
             return "Unexpected or unmatched values: \(values)"
         case .noCommandProvided:
@@ -45,20 +45,20 @@ public final class CommandParser {
     ) throws -> Set<ArgumentValueHolder> {
         var stringValues = stringValues
         
-        let result = try commandArguments.map { argument -> ArgumentValueHolder in
-            guard let index = stringValues.firstIndex(of: argument.dashedName) else {
-                throw CommandParserError.expectedValueAfterDashedArgument(argument)
+        let result = try commandArguments.map { argumentDescription -> ArgumentValueHolder in
+            guard let index = stringValues.firstIndex(of: argumentDescription.name.expectedInputValue) else {
+                throw CommandParserError.expectedValueAfterDashedArgument(argumentDescription)
             }
             
             guard index + 1 < stringValues.count else {
-                throw CommandParserError.missingValue(argument)
+                throw CommandParserError.missingValue(argumentDescription)
             }
             
             let stringValue = stringValues.remove(at: index + 1)
             stringValues.remove(at: index)
             
             return ArgumentValueHolder(
-                argumentDescription: argument,
+                argumentName: argumentDescription.name,
                 stringValue: stringValue
             )
         }
@@ -68,11 +68,5 @@ public final class CommandParser {
         }
         
         return Set(result)
-    }
-}
-
-public extension ArgumentDescription {
-    var dashedName: String {
-        return "--\(name)"
     }
 }

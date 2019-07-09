@@ -20,16 +20,16 @@ public struct RuntimeDumpConfiguration {
     /** Test destination */
     public let testDestination: TestDestination
     
-    /** All tests that need to be run */
-    public let testsToRun: [TestToRun]
+    /** Tests that are expected to run, so runtime dump can validate their presence. */
+    public let testsToValidate: [TestToRun]
 
     public init(
         fbxctest: FbxctestLocation,
         xcTestBundle: XcTestBundle,
         applicationTestSupport: RuntimeDumpApplicationTestSupport?,
         testDestination: TestDestination,
-        testsToRun: [TestToRun])
-    {
+        testsToValidate: [TestToRun]
+    ) {
         self.testTimeoutConfiguration = TestTimeoutConfiguration(
             singleTestMaximumDuration: 20,
             fbxctestSilenceMaximumDuration: 20
@@ -42,6 +42,6 @@ public struct RuntimeDumpConfiguration {
         self.xcTestBundle = xcTestBundle
         self.applicationTestSupport = applicationTestSupport
         self.testDestination = testDestination
-        self.testsToRun = testsToRun
+        self.testsToValidate = testsToValidate
     }
 }

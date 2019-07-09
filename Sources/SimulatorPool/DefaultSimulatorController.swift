@@ -10,7 +10,7 @@ import ResourceLocationResolver
  * Prepares and returns the simulator it owns. API is expected to be used from non multithreaded environment,
  * i.e. from serial queue.
  */
-public class DefaultSimulatorController: SimulatorController, CustomStringConvertible {
+open class DefaultSimulatorController: SimulatorController, CustomStringConvertible {
     private let simulator: Simulator
     private let fbsimctl: ResolvableResourceLocation
     private let maximumBootAttempts = 2
@@ -24,16 +24,16 @@ public class DefaultSimulatorController: SimulatorController, CustomStringConver
         self.fbsimctl = fbsimctl
     }
 
-    public func bootedSimulator() throws -> Simulator {
+    open func bootedSimulator() throws -> Simulator {
         try attemptToSwitchState(targetStates: [.booted])
         return simulator
     }
 
-    public func deleteSimulator() throws {
+    open func deleteSimulator() throws {
         try attemptToSwitchState(targetStates: [.absent])
     }
 
-    public func shutdownSimulator() throws {
+    open func shutdownSimulator() throws {
         try attemptToSwitchState(targetStates: [.created, .absent])
     }
 

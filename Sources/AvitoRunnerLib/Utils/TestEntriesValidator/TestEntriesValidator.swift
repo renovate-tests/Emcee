@@ -62,11 +62,11 @@ public final class TestEntriesValidator {
             xcTestBundle: buildArtifacts.xcTestBundle,
             applicationTestSupport: runtimeDumpApplicationTestSupport,
             testDestination: validatorConfiguration.testDestination,
-            testsToRun: testEntries.map { $0.testToRun }
+            testsToValidate: testEntries.map { $0.testToRun }
         )
 
         let runtimeQueryResult = try runtimeTestQuerier.queryRuntime(configuration: runtimeDumpConfiguration)
-        let transformer = TestToRunIntoTestEntryTransformer(testsToRun: runtimeDumpConfiguration.testsToRun)
+        let transformer = TestToRunIntoTestEntryTransformer(testsToRun: runtimeDumpConfiguration.testsToValidate)
         return try transformer.transform(
             runtimeQueryResult: runtimeQueryResult,
             buildArtifacts: buildArtifacts

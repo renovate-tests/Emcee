@@ -1,21 +1,20 @@
-@testable import ResourceLocationResolver
-@testable import SimulatorPool
 import Models
 import PathLib
+import ResourceLocationResolver
+import SimulatorPool
 import TemporaryStuff
 
-final class SimulatorPoolWithDefaultSimulatorControllerMock: SimulatorPool<DefaultSimulatorController> {
+public final class SimulatorPoolWithDefaultSimulatorControllerMock: SimulatorPool<DefaultSimulatorController> {
     private let testDestination: TestDestination
     private let fbsimctl: ResolvableResourceLocation
+    private let resourceLocationResolver = ResourceLocationResolver()
 
-    init() throws {
+    public init() throws {
         testDestination = try TestDestination(deviceType: "iPhoneXL", runtime: "10.3")
-        fbsimctl = ResolvableResourceLocationImpl(
-            resourceLocation: .localFilePath(""),
-            resolver: ResourceLocationResolver()
+        fbsimctl = resourceLocationResolver.resolvable(
+            resourceLocation: .localFilePath("")
         )
         let tempFolder = try TemporaryFolder()
-
 
         try super.init(
             numberOfSimulators: 0,
@@ -24,9 +23,8 @@ final class SimulatorPoolWithDefaultSimulatorControllerMock: SimulatorPool<Defau
             tempFolder: tempFolder)
     }
 
-    override func allocateSimulatorController() throws -> DefaultSimulatorController {
-        let simulator = Shimulator(
-            index: 0,
+    override public func allocateSimulatorController() throws -> DefaultSimulatorController {
+        let simulator = Shimulator.shimulator(
             testDestination: testDestination,
             workingDirectory: AbsolutePath.root
         )

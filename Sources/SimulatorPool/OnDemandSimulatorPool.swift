@@ -5,7 +5,7 @@ import Models
 import TemporaryStuff
 import ResourceLocationResolver
 
-public class OnDemandSimulatorPool<T> where T: SimulatorController {
+open class OnDemandSimulatorPool<T> where T: SimulatorController {
     
     public struct Key: Hashable, CustomStringConvertible {
         public let numberOfSimulators: UInt
@@ -49,7 +49,7 @@ public class OnDemandSimulatorPool<T> where T: SimulatorController {
         deleteSimulators()
     }
     
-    public func pool(key: Key) throws -> SimulatorPool<T> {
+    open func pool(key: Key) throws -> SimulatorPool<T> {
         var pool: SimulatorPool<T>?
         try syncQueue.sync {
             if let existingPool = pools[key] {
@@ -68,7 +68,7 @@ public class OnDemandSimulatorPool<T> where T: SimulatorController {
         return pool!
     }
     
-    public func deleteSimulators() {
+    open func deleteSimulators() {
         syncQueue.sync {
             for pool in pools.values {
                 pool.deleteSimulators()

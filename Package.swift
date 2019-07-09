@@ -39,7 +39,6 @@ let package = Package(
         .package(url: "https://github.com/IBM-Swift/BlueSignals.git", .exact("1.0.16")),
         .package(url: "https://github.com/Weebly/OrderedSet", .exact("5.0.0")),
         .package(url: "https://github.com/avito-tech/GraphiteClient.git", .exact("0.1.0")),
-        .package(url: "https://github.com/beefon/swift-package-manager.git", .branch("swift-5.0-branch")),
         .package(url: "https://github.com/daltoniam/Starscream.git", .exact("3.0.6")),
         .package(url: "https://github.com/httpswift/swifter.git", .exact("1.4.6")),
         .package(url: "https://github.com/jakeheis/Shout.git", .branch("master")),
@@ -66,17 +65,6 @@ let package = Package(
             dependencies: [
                 "ArgLib",
                 "OrderedSet"
-            ]
-        ),
-        .target(
-            // MARK: ArgumentsParser
-            name: "ArgumentsParser",
-            dependencies: [
-                "Extensions",
-                "Logging",
-                "Models",
-                "RuntimeDump",
-                "Utility"
             ]
         ),
         .target(
@@ -107,12 +95,13 @@ let package = Package(
             // MARK: AvitoRunnerLib
             name: "AvitoRunnerLib",
             dependencies: [
-                "ArgumentsParser",
+                "ArgLib",
                 "ChromeTracing",
                 "Deployer",
                 "DistRunner",
                 "DistWorker",
                 "EventBus",
+                "Extensions",
                 "JunitReporting",
                 "LaunchdUtils",
                 "LocalQueueServerRunner",
@@ -131,7 +120,6 @@ let package = Package(
                 "SignalHandling",
                 "TemporaryStuff",
                 "UniqueIdentifierGenerator",
-                "Utility",
                 "Version"
             ]
         ),
@@ -140,8 +128,14 @@ let package = Package(
             name: "AvitoRunnerLibTests",
             dependencies: [
                 "AvitoRunnerLib",
+                "EventBus",
                 "Models",
-                "ModelsTestHelpers"
+                "ModelsTestHelpers",
+                "ResourceLocationResolver",
+                "RuntimeDump",
+                "SimulatorPool",
+                "SimulatorPoolTestHelpers",
+                "TemporaryStuff"
             ]
         ),
         .target(
@@ -888,8 +882,9 @@ let package = Package(
                 "PathLib",
                 "ResourceLocationResolver",
                 "RuntimeDump",
-                "TestingFakeFbxctest",
-                "TemporaryStuff"
+                "SimulatorPoolTestHelpers",
+                "TemporaryStuff",
+                "TestingFakeFbxctest"
             ]
         ),
         .target(
@@ -969,6 +964,17 @@ let package = Package(
                 "ProcessController",
                 "TemporaryStuff",
                 "fbxctest"
+            ]
+        ),
+        .target(
+            // MARK: SimulatorPoolTestHelpers
+            name: "SimulatorPoolTestHelpers",
+            dependencies: [
+                "Models",
+                "PathLib",
+                "ResourceLocationResolver",
+                "SimulatorPool",
+                "TemporaryStuff"
             ]
         ),
         .testTarget(

@@ -1,16 +1,17 @@
-@testable import RuntimeDump
 import Models
+import RuntimeDump
 
-final class RuntimeTestQuerierMock: RuntimeTestQuerier {
-    var numberOfCalls = 0
-    var configuration: RuntimeDumpConfiguration?
-    func queryRuntime(configuration: RuntimeDumpConfiguration) throws -> RuntimeQueryResult {
+public final class RuntimeTestQuerierMock: RuntimeTestQuerier {
+    public var numberOfCalls = 0
+    public var configuration: RuntimeDumpConfiguration?
+    public var result = RuntimeQueryResult(
+        unavailableTestsToRun: [],
+        availableRuntimeTests: []
+    )
+    
+    public func queryRuntime(configuration: RuntimeDumpConfiguration) throws -> RuntimeQueryResult {
         numberOfCalls += 1
         self.configuration = configuration
-        
-        return RuntimeQueryResult(
-            unavailableTestsToRun: [],
-            availableRuntimeTests: []
-        )
+        return result
     }
 }

@@ -1,12 +1,12 @@
 import Foundation
 
 public enum ArgumentsError: Error, CustomStringConvertible {
-    case argumentMissing(name: String)
+    case argumentMissing(ArgumentName)
     
     public var description: String {
         switch self {
         case .argumentMissing(let name):
-            return "Argument is missing: \(name)"
+            return "Argument is missing: \(name)."
         }
     }
 }

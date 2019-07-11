@@ -43,7 +43,7 @@ let package = Package(
         .package(url: "https://github.com/daltoniam/Starscream.git", .exact("3.0.6")),
         .package(url: "https://github.com/httpswift/swifter.git", .exact("1.4.6")),
         .package(url: "https://github.com/jakeheis/Shout.git", .branch("master")),
-        .package(url: "https://github.com/weichsel/ZIPFoundation/", from: "0.9.6")
+        .package(url: "https://github.com/weichsel/ZIPFoundation/", from: "0.9.9")
     ],
     targets: [
         // MARK: - Targets
